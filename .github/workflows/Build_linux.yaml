@@ -1,0 +1,42 @@
+name: Linux ARM Build
+on: [push, workflow_dispatch]
+
+jobs:
+  build-arm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install Cross-Compiler and Libs
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
+          cmake libsdl2-dev:armhf libopenal-dev:armhf libsndfile1-dev:armhf \
+          libmpg123-dev:armhf libglew-dev:armhf
+
+      - name: Configure CMake
+        run: |
+          mkdir build && cd build
+          cmake .. \
+          -DCMAKE_SYSTEM_NAME=Linux \
+          -DCMAKE_SYSTEM_PROCESSOR=arm \
+          -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+          -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+          -DREVC_PROJECT_NAME=reVC \
+          -DREVC_AUDIO=ON \
+          -DLIBRW_PLATFORM=GL3 \
+          -DLIBRW_GL3_GFXLIB=SDL2
+
+      - name: Build reVC
+        run: |
+          cd build
+          make -j$(nproc)
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reVC-armhf-linux
+          path: build/reVC
