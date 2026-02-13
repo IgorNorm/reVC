@@ -23,15 +23,14 @@ jobs:
 
           run: |
             mkdir -p build && cd build
-            # Складні макроси: OPEN створює семафор, CLOSE просто закриває (ігноруючи зайві аргументи)
-            export CXXFLAGS="-DRE3_POSIX -DRE3_SEM_OPEN(name)=sem_open(name,O_CREAT,0644,0) -DRE3_SEM_CLOSE(sem,...)=sem_close(sem)"
-            
+            # Використовуємо -D без дужок для Shell, передаючи їх напряму в CMake
             cmake .. \
               -DCMAKE_BUILD_TYPE=Release \
               -DREVC_AUDIO=OAL \
               -DLIBRW_PLATFORM=GL3 \
               -DLIBRW_GL3_GFXLIB=SDL2 \
-              -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+              -DRE3_POSIX=ON \
+              -DCMAKE_CXX_FLAGS="-DRE3_POSIX -DRE3_SEM_OPEN\(name\)=sem_open\(name,O_CREAT,0644,0\) -DRE3_SEM_CLOSE\(sem,...\)=sem_close\(sem\)" \
               -DCMAKE_EXE_LINKER_FLAGS="-lpthread -lrt"
             
             make -j$(nproc)
