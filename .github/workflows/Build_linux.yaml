@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive # Важливо для коректного затягування librw
 
       - name: Build in ARM Docker
         uses: uraimo/run-on-arch-action@v2
@@ -16,18 +16,18 @@ jobs:
           distro: bookworm
           githubToken: ${{ github.token }}
           
-          # Встановлюємо всі необхідні бібліотеки всередині контейнера
+          # Встановлюємо залежності, включаючи ті, що необхідні для POSIX семафорів та звуку
           install: |
             apt-get update
             apt-get install -y build-essential cmake git libsdl2-dev libopenal-dev \
-            libsndfile1-dev libmpg123-dev libglew-dev libglfw3-dev
+            libsndfile1-dev libmpg123-dev libglew-dev libglfw3-dev libpulse-dev
 
-          # Компіляція з виправленим параметром аудіо -DREVC_AUDIO=OAL
+          # Додано -DRE3_POSIX=ON для виправлення помилки RE3_SEM_OPEN
           run: |
-            mkdir build && cd build
+            mkdir -p build && cd build
             cmake .. \
               -DCMAKE_BUILD_TYPE=Release \
-              -DREVC_PROJECT_NAME=reVC \
+              -DRE3_POSIX=ON \
               -DREVC_AUDIO=OAL \
               -DLIBRW_PLATFORM=GL3 \
               -DLIBRW_GL3_GFXLIB=SDL2
@@ -36,5 +36,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reVC-arm-docker
+          name: reVC-arm-v7-linux
           path: build/reVC
