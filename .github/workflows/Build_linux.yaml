@@ -23,14 +23,15 @@ jobs:
 
           run: |
             mkdir -p build && cd build
-            # Використовуємо -D без дужок для Shell, передаючи їх напряму в CMake
+            # Макрос OPEN тепер підтримує форматування імені (через sprintf або просто sem_open)
+            # Ми спрощуємо його, оскільки в POSIX ім'я семафора зазвичай константне або вже сформоване
             cmake .. \
               -DCMAKE_BUILD_TYPE=Release \
               -DREVC_AUDIO=OAL \
               -DLIBRW_PLATFORM=GL3 \
               -DLIBRW_GL3_GFXLIB=SDL2 \
               -DRE3_POSIX=ON \
-              -DCMAKE_CXX_FLAGS="-DRE3_POSIX -DRE3_SEM_OPEN\(name\)=sem_open\(name,O_CREAT,0644,0\) -DRE3_SEM_CLOSE\(sem,...\)=sem_close\(sem\)" \
+              -DCMAKE_CXX_FLAGS="-DRE3_POSIX -DRE3_SEM_OPEN(...)=sem_open(__VA_ARGS__,O_CREAT,0644,0) -DRE3_SEM_CLOSE(sem,...)=sem_close(sem)" \
               -DCMAKE_EXE_LINKER_FLAGS="-lpthread -lrt"
             
             make -j$(nproc)
@@ -38,5 +39,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reVC-arm-v7-fixed
+          name: reVC-arm-v7-final
           path: build/reVC
