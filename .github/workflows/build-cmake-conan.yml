@@ -1,4 +1,4 @@
-name: reVC conan+cmake
+name: reVpC conan+cmake
 on:
   pull_request:
   push:
